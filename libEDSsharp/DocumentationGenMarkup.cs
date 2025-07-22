@@ -104,7 +104,7 @@ Device Information
 | LSS Master   | {8,-30} |
 | NG Slave     | {9,-30} |
 | NG Master    | {10,-30} |
-",          eds.di.VendorName, eds.di.VendorNumber, eds.di.ProductName, eds.di.ProductNumber,
+", eds.di.VendorName, eds.di.VendorNumber, eds.di.ProductName, eds.di.ProductNumber,
             eds.di.Granularity, eds.di.NrOfRXPDO.ToString(), eds.di.NrOfTXPDO.ToString(),
             eds.di.LSS_Supported, eds.di.LSS_Master, eds.di.NG_Slave, eds.di.NG_Master));
 
@@ -278,11 +278,14 @@ Device Information
 
             file.WriteLine(string.Format(@"
 ### 0x{0:X4} - {1}
++-------------+----------------+----------------+
 | Object Type | Count Label    | Storage Group  |
-| ----------- | -------------- | -------------- |
++=============+================+================+
 | {2,-12}| {3,-15}| {4,-15}|",
                  od.Index, od.parameter_name,
                  od.ObjectTypeString(), od.prop.CO_countLabel, od.prop.CO_storageGroup));
+
+            file.WriteLine(string.Format(@"+-------------+----------------+----------------+"));
 
             if (od.Description != null && od.Description != "")
                 descriptions.Add(od.Description);
@@ -290,24 +293,91 @@ Device Information
             if (od.objecttype == ObjectType.VAR)
             {
                 file.WriteLine(string.Format(@"
++-------------------------+-----+-----+------+---------------------------------+
 | Data Type               | SDO | PDO | SRDO | Default Value                   |
-| ----------------------- | --- | --- | ---- | ------------------------------- |
++=========================+=====+=====+======+=================================+
 | {0,-24}| {1,-4}| {2,-4}| {3,-5}| {4,-32}|",
                     PrintDataType(od), od.AccessSDO().ToString(), od.AccessPDO().ToString(),
                     od.prop.CO_accessSRDO.ToString(), od.defaultvalue));
+                file.WriteLine(string.Format(@"+-------------------------+-----+-----+------+---------------------------------+"));
             }
             else
             {
                 file.WriteLine(string.Format(@"
-| Sub  | Name                  | Data Type  | SDO | PDO | SRDO | Default Value |
-| ---- | --------------------- | ---------- | --- | --- | ---- | ------------- |"));
++------+-----------------------------+------------------------+-----+-----+------+-------------------+
+| Sub  | Name                        | Data Type              | SDO | PDO | SRDO | Default Value     |
++======+=============================+========================+=====+=====+======+===================+"));
 
                 foreach (ODentry subod in od.subobjects.Values)
                 {
-                    file.WriteLine(string.Format(@"| 0x{0:X2} | {1,-22}| {2,-11}| {3,-4}| {4,-4}| {5,-5}| {6,-14}|",
-                        subod.Subindex, subod.parameter_name, PrintDataType(subod),
-                        subod.AccessSDO().ToString(), subod.AccessPDO().ToString(),
-                        subod.prop.CO_accessSRDO.ToString(), subod.defaultvalue));
+                    string subindex = subod.Subindex.ToString("X2");
+                    string parameter_name = subod.parameter_name;
+                    string parameter_name_extra = "";
+                    string subod_type = PrintDataType(subod);
+                    string access_sdo = subod.AccessSDO().ToString();
+                    string access_pdo = subod.AccessPDO().ToString();
+                    string access_srdo = subod.prop.CO_accessSRDO.ToString();
+                    string default_value = subod.defaultvalue;
+
+                    if (subindex.Length < 3)
+                    {
+                        subindex += new string(' ', 3 - subindex.Length);
+                    }
+
+                    if (parameter_name.Length < 28)
+                    {
+                        parameter_name += new string(' ', 28 - parameter_name.Length);
+                    }
+                    if (parameter_name.Length > 28)
+                    {
+                        parameter_name_extra = parameter_name.Substring(28);
+                        parameter_name = parameter_name.Substring(0, 28);
+                        if (parameter_name_extra.Length < 28)
+                        {
+                            parameter_name_extra += new string(' ', 28 - parameter_name_extra.Length);
+                        }
+                    }
+
+                    if (subod_type.Length < 23)
+                    {
+                        subod_type += new string(' ', 23 - subod_type.Length);
+                    }
+
+                    if (access_sdo.Length < 4)
+                    {
+                        access_sdo += new string(' ', 4 - access_sdo.Length);
+                    }
+
+                    if (access_pdo.Length < 4)
+                    {
+                        access_pdo += new string(' ', 4 - access_pdo.Length);
+                    }
+
+
+                    if (access_srdo.Length < 4)
+                    {
+                        access_srdo += new string(' ', 4 - access_srdo.Length);
+                    }
+
+                    if (default_value.Length < 18)
+                    {
+                        default_value += new string(' ', 18 - default_value.Length);
+                    }
+
+                    file.WriteLine(string.Format(@"| 0x{0:X2}| {1,-22}| {2,-11}| {3,-4}| {4,-4}| {5,-5}| {6,-14}|",
+                        subindex, parameter_name, subod_type,
+                        access_sdo, access_pdo,
+                        access_srdo, default_value));
+
+                    if (parameter_name_extra.Length > 0)
+                    {
+                        file.WriteLine(string.Format(@"| {0:X2}| {1,-22}| {2,-11}| {3,-4}| {4,-4}| {5,-5}| {6,-14}|",
+                        "     ", parameter_name_extra, "                       ",
+                        "    ", "    ",
+                        "    ", "                  "));
+                    }
+
+                    file.WriteLine(string.Format(@"+------+-----------------------------+------------------------+-----+-----+------+-------------------+"));
 
                     if (subod.Description != null && subod.Description != "")
                         descriptions.Add(subod.Description);
