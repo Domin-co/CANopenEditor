@@ -3,7 +3,7 @@ name: make release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "domin-v*.*.*"
 
 jobs:
   build:
@@ -25,7 +25,7 @@ jobs:
         msbuild /property:Configuration=Release
     - name: Check for release tag
       run: |
-        $release = "${{ github.ref_name }}" -match "v[\d]*[.][\d]*[.][\d]*$"
+        $release = "${{ github.ref_name }}" -match "domin-v[\d]*[.][\d]*[.][\d]*$"
         $prerelease = If ($release) {"false"} else {"true"}
         echo "prerelease=$prerelease" >> $env:GITHUB_ENV
     - name: Make release package
