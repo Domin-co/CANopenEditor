@@ -310,12 +310,26 @@ namespace libEDSsharp
                 ODStorage[group].Add($".x{varName}_sub0 = {cValue0}");
                 dataPtr0 = $"&{odname}_{group}.x{varName}_sub0";
             }
+            else if (cValue0 != null && group.Contains("LOCKABLE"))
+            {
+                ODStorage_t[group].Add($"uint8_t x{varName}_sub0;");
+                ODStorage[group].Add($".x{varName}_sub0 = {cValue0}");
+                dataPtr0 = $"&{odname}_{group}.x{varName}_sub0";
+            }
+
             if (dataElem.cValue != null && !group.Contains("LOCKABLE"))
             {
                 ODStorage_t[group].Add($"{dataElem.cType} x{varName}[{odname}_CNT_ARR_{indexH}]{dataElem.cTypeArray};");
                 ODStorage[group].Add($".x{varName} = {{{string.Join(", ", ODStorageValues)}}}");
                 dataPtr = $"&{odname}_{group}.x{varName}[0]{dataElem.cTypeArray0}";
             }
+            else if (dataElem.cValue != null && group.Contains("LOCKABLE"))
+            {
+                ODStorage_t[group].Add($"{dataElem.cType} x{varName}[{odname}_CNT_ARR_{indexH}]{dataElem.cTypeArray};");
+                ODStorage[group].Add($".x{varName} = {{{string.Join(", ", ODStorageValues)}}}");
+                dataPtr = $"&{odname}_{group}.x{varName}[0]{dataElem.cTypeArray0}";
+            }
+
 
             // sizeof data element inside the array
             string dataElementSizeof = dataElem.cType == "not specified" && dataElem.length == 0
@@ -369,6 +383,12 @@ namespace libEDSsharp
                 string subcName = Make_cname(sub.parameter_name);
                 string dataPtr = "NULL";
                 if (data.cValue != null && !group.Contains("LOCKABLE"))
+                {
+                    subODStorage_t.Add($"{data.cType} {subcName}{data.cTypeArray};");
+                    subODStorage.Add($".{subcName} = {data.cValue}");
+                    dataPtr = $"&{odname}_{group}.x{varName}.{subcName}{data.cTypeArray0}";
+                }
+                else if (data.cValue != null && group.Contains("LOCKABLE") && sub.Subindex == 0)
                 {
                     subODStorage_t.Add($"{data.cType} {subcName}{data.cTypeArray};");
                     subODStorage.Add($".{subcName} = {data.cValue}");
