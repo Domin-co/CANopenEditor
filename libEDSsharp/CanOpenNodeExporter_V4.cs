@@ -501,7 +501,7 @@ namespace libEDSsharp
 *******************************************************************************/");
             foreach (string group in ODStorageGroups)
             {
-                if (ODStorage_t.Count > 0 && !group.Contains("LOCKABLE"))
+                if (ODStorage_t.Count > 0)//&& !group.Contains("LOCKABLE"))
                 {
                     file.WriteLine($"typedef struct {{");
                     file.WriteLine($"    {string.Join("\n    ", ODStorage_t[group])}");
@@ -511,7 +511,7 @@ namespace libEDSsharp
 
             foreach (string group in ODStorageGroups)
             {
-                if (ODStorage_t.Count > 0 && !group.Contains("LOCKABLE"))
+                if (ODStorage_t.Count > 0)// && !group.Contains("LOCKABLE"))
                 {
                     file.WriteLine($"#ifndef {odname}_ATTR_{group}");
                     file.WriteLine($"#define {odname}_ATTR_{group}");
@@ -638,7 +638,7 @@ namespace libEDSsharp
 *******************************************************************************/");
             foreach (string group in ODStorageGroups)
             {
-                if (ODStorage.Count > 0 && !group.Contains("LOCKABLE"))
+                if (ODStorage.Count > 0)//&& !group.Contains("LOCKABLE"))
                 {
                     file.WriteLine($"{odname}_ATTR_{group} {odname}_{group}_t {odname}_{group} = {{");
                     file.WriteLine($"    {string.Join(",\n    ", ODStorage[group])}");
