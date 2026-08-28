@@ -52,7 +52,8 @@ namespace libEDSsharp
         /// </summary>
         /// <param name="filepath">where the documentation should be created</param>
         /// <param name="eds">data to generate the documentation from</param>
-        public void genmddoc(string filepath, EDSsharp eds)
+        /// <param name="customerOnly">if true, only objects marked "Customer Visible" are included (used by "Create Customer MD")</param>
+        public void genmddoc(string filepath, EDSsharp eds, bool customerOnly = false)
         {
             var versionAttributes = Assembly
                 .GetExecutingAssembly()
@@ -123,7 +124,7 @@ Device Information
 
             file.WriteLine("PDO Mapping");
             file.WriteLine("-----------");
-            PrintPdoMd(eds);
+            PrintPdoMd(eds, false, customerOnly);
 
             int chapter = 0;
             foreach (ODentry od in eds.ods.Values)
@@ -150,8 +151,8 @@ Device Information
                     chapter++;
                 }
 
-                if (!od.prop.CO_disabled)
-                    PrintODentryMd(od);
+                if (!od.prop.CO_disabled && (!customerOnly || od.prop.CO_customerVisible))
+                    PrintODentryMd(od, customerOnly);
             }
 
             file.Close();
@@ -161,7 +162,8 @@ Device Information
         /// </summary>
         /// <param name="eds">data containing the information</param>
         /// <param name="skipDisabled">skip disabled PDOs</param>
-        void PrintPdoMd(EDSsharp eds, bool skipDisabled = false)
+        /// <param name="customerOnly">skip PDOs whose communication or mapping parameter is not marked "Customer Visible"</param>
+        void PrintPdoMd(EDSsharp eds, bool skipDisabled = false, bool customerOnly = false)
         {
             var parameters = new SortedDictionary<UInt16, ODentry>();
             var mappings = new SortedDictionary<UInt16, ODentry>();
@@ -169,7 +171,10 @@ Device Information
             {
                 if (od.Index < 0x1400 || od.prop.CO_disabled || od.objecttype != ObjectType.RECORD || od.subobjects.Count < 3)
                     continue;
-                else if (od.Index < 0x1600)
+                if (customerOnly && !od.prop.CO_customerVisible)
+                    continue;
+
+                if (od.Index < 0x1600)
                     parameters.Add(od.Index, od);
                 else if (od.Index < 0x1800)
                     mappings.Add(od.Index, od);
@@ -190,6 +195,9 @@ Device Information
 
                 ODentry map = mappings[mappingIndex];
                 uint mapCount;
+
+                if (customerOnly && !map.prop.CO_customerVisible)
+                    continue;
 
                 // skip, if PDO (is disabled and) has no mapped entries
                 try
@@ -272,7 +280,8 @@ Device Information
         /// Write a object dictionary markup entry to file
         /// </summary>
         /// <param name="od">Object dictionary entry</param>
-        void PrintODentryMd(ODentry od)
+        /// <param name="customerOnly">skip sub-entries not marked "Customer Visible"</param>
+        void PrintODentryMd(ODentry od, bool customerOnly = false)
         {
             var descriptions = new List<string>();
 
@@ -310,6 +319,9 @@ Device Information
 
                 foreach (ODentry subod in od.subobjects.Values)
                 {
+                    if (customerOnly && !subod.prop.CO_customerVisible)
+                        continue;
+
                     string subindex = subod.Subindex.ToString("X2");
                     string parameter_name = subod.parameter_name;
                     string parameter_name_extra = "";

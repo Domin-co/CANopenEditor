@@ -5,6 +5,15 @@
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net481;net8.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Tests is a Library, so MSBuild's binding-redirect generator normally skips it (it only
+         auto-detects conflicts within this project's own restored packages, which happen to be
+         consistent here). These two properties make it at least try for a Library output. The
+         actual fix for the System.Memory/System.Buffers/System.Runtime.CompilerServices.Unsafe/
+         System.Numerics.Vectors mismatch seen at test run time, which comes from the VSTest
+         net481 test host and not from anything in this project's own dependency graph, is the
+         explicit redirects in App.config, which get copied to Tests.dll.config on build. -->
+    <AutoGenerateBindingRedirects Condition="'$(TargetFramework)' == 'net481'">true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType Condition="'$(TargetFramework)' == 'net481'">true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\libEDSsharp\libEDSsharp.csproj" />

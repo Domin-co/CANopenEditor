@@ -127,7 +127,10 @@ namespace libEDSsharp
                 .ForMember(dest => dest.CO_disabled, opt => opt.MapFrom(src => src.Disabled))
                 .ForMember(dest => dest.CO_countLabel, opt => opt.MapFrom(src => src.CountLabel))
                 .ForMember(dest => dest.CO_storageGroup, opt => opt.MapFrom(src => src.StorageGroup))
-                .ForMember(dest => dest.CO_flagsPDO, opt => opt.MapFrom(src => src.FlagsPDO));
+                .ForMember(dest => dest.CO_flagsPDO, opt => opt.MapFrom(src => src.FlagsPDO))
+                // The experimental protobuf schema has no "Customer Visible" field yet, so this
+                // is left out of protobuf import/export; it keeps its default (visible) value.
+                .ForMember(dest => dest.CO_customerVisible, opt => opt.Ignore());
                 cfg.CreateMap<OdObject.Types.ObjectType, ObjectType>().ConvertUsing<ODTypeResolver>();
                 cfg.CreateMap<OdObject, ODentry>()
                 .ForMember(dest => dest.Index, opt => opt.Ignore())

@@ -303,6 +303,8 @@ namespace ODEditor
                         subod.defaultvalue
                     });
                     lvi2.Tag = subod;
+                    if (!subod.prop.CO_customerVisible)
+                        lvi2.ForeColor = Color.LightGray;
                     listView_subObjects.Items.Add(lvi2);
                 }
             }
@@ -423,10 +425,15 @@ namespace ODEditor
                 checkBox_pdoFlags.Enabled = false;
             }
 
+            // Customer Visible applies per index AND per sub-index, so it is always
+            // editable and reflects the currently selected entry (od), not odBase.
+            checkBox_customerVisible.Enabled = true;
+
             ComboBoxSet(comboBox_countLabel, odBase.prop.CO_countLabel);
             ComboBoxSet(comboBox_storageGroup, odBase.prop.CO_storageGroup);
             checkBox_enabled.Checked = !odBase.prop.CO_disabled;
             checkBox_pdoFlags.Checked = odBase.prop.CO_flagsPDO;
+            checkBox_customerVisible.Checked = od.prop.CO_customerVisible;
 
             justUpdating = false;
             return;
@@ -624,6 +631,9 @@ namespace ODEditor
                 od.prop.CO_disabled = !checkBox_enabled.Checked;
                 od.prop.CO_flagsPDO = checkBox_pdoFlags.Checked;
             }
+
+            // Customer Visible is saved for whichever entry is selected, index or sub-index.
+            od.prop.CO_customerVisible = checkBox_customerVisible.Checked;
 
             PopulateObjectLists(eds);
             PopulateSubList();
