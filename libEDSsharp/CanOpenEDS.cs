@@ -1060,7 +1060,13 @@ namespace libEDSsharp
             UpdatePDOcount();
         }
 
-        public void Savefile(string filename, InfoSection.Filetype ft)
+        /// <summary>
+        /// Write this device's object dictionary out to an EDS/DCF file
+        /// </summary>
+        /// <param name="filename">destination file path</param>
+        /// <param name="ft">File_EDS or File_DCF</param>
+        /// <param name="customerOnly">if true, only objects marked "Customer Visible" are written (used by "Create Customer EDS")</param>
+        public void Savefile(string filename, InfoSection.Filetype ft, bool customerOnly = false)
         {
             if (ft == InfoSection.Filetype.File_EDS)
                 this.edsfilename = filename;
@@ -1109,6 +1115,9 @@ namespace libEDSsharp
                 ODentry entry = kvp.Value;
 
                 if (entry.prop.CO_disabled == true)
+                    continue;
+
+                if (customerOnly && !entry.prop.CO_customerVisible)
                     continue;
 
                 if (entry.Index == 0x1000 || entry.Index == 0x1001 || entry.Index == 0x1018)

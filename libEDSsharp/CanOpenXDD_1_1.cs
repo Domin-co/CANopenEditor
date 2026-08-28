@@ -877,7 +877,17 @@ namespace libEDSsharp
                             devSubPar.Items = new object[] { new vendorTextLabel { lang = "en", Value = subod.parameter_name } };
                         }
                         if (!stripped)
-                            devSubPar.property = subod.prop.SubOdeXdd();
+                        {
+                            // Combine the object-level bucket (currently only ever yields
+                            // CO_customerVisible for a sub-entry, since CO_disabled/CO_countLabel/
+                            // CO_storageGroup/CO_flagsPDO are index-level only and stay default here)
+                            // with the sub-level bucket (CO_accessSRDO/CO_stringLengthMin).
+                            var subPropOd = subod.prop.OdeXdd();
+                            var subPropSub = subod.prop.SubOdeXdd();
+                            devSubPar.property = new property[subPropOd.Length + subPropSub.Length];
+                            subPropOd.CopyTo(devSubPar.property, 0);
+                            subPropSub.CopyTo(devSubPar.property, subPropOd.Length);
+                        }
                         if (deviceCommissioning && subod.denotation != null && subod.denotation != "")
                         {
                             devPar.denotation = new denotation

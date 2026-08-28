@@ -557,6 +557,45 @@ namespace ODEditor
             }
         }
 
+        private void createCustomerEdsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedTab != null)
+            {
+                DeviceView dv = (DeviceView)tabControl1.SelectedTab.Controls[0];
+                SaveFileDialog sfd = new SaveFileDialog();
+
+                sfd.Filter = "Electronic Data Sheet (*.eds)|*.eds";
+                sfd.InitialDirectory = Path.GetDirectoryName(dv.eds.projectFilename);
+                sfd.RestoreDirectory = true;
+                sfd.FileName = Path.GetFileNameWithoutExtension(dv.eds.projectFilename) + "_Customer";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    dv.eds.Savefile(sfd.FileName, InfoSection.Filetype.File_EDS, true);
+                }
+            }
+        }
+
+        private void createCustomerMdToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedTab != null)
+            {
+                DeviceView dv = (DeviceView)tabControl1.SelectedTab.Controls[0];
+                SaveFileDialog sfd = new SaveFileDialog();
+
+                sfd.Filter = "Documentation (*.md)|*.md";
+                sfd.InitialDirectory = Path.GetDirectoryName(dv.eds.projectFilename);
+                sfd.RestoreDirectory = true;
+                sfd.FileName = Path.GetFileNameWithoutExtension(dv.eds.projectFilename) + "_Customer";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    DocumentationGenMarkup docgen = new DocumentationGenMarkup();
+                    docgen.genmddoc(sfd.FileName, dv.eds, true);
+                }
+            }
+        }
+
         private void saveProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (tabControl1.SelectedTab != null)
@@ -737,6 +776,8 @@ namespace ODEditor
             networkPDOToolStripMenuItem.Enabled = enable;
             saveExportAllToolStripMenuItem.Enabled = enable;
             exportDeviceFileToolStripMenuItem.Enabled = enable;
+            createCustomerEdsToolStripMenuItem.Enabled = enable;
+            createCustomerMdToolStripMenuItem.Enabled = enable;
             saveAsToolStripMenuItem.Enabled = true;
 
         }

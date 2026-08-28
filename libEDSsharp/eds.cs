@@ -187,6 +187,12 @@ namespace libEDSsharp
         /// </summary>
         public string CO_storageGroup = "RAM";
         public bool CO_flagsPDO = false;
+        /// <summary>
+        /// If false, object is left out of "Create Customer EDS/MD" exports, while still being
+        /// included in the normal (internal) EDS/DCF/MD output. Defaults to true so existing
+        /// objects, and any object without this property set, remain customer visible.
+        /// </summary>
+        public bool CO_customerVisible = true;
         public AccessSRDO CO_accessSRDO = AccessSRDO.no;
         /// <summary>
         /// Minimum length of a string that can be stored   
@@ -206,7 +212,8 @@ namespace libEDSsharp
                 CO_storageGroup = CO_storageGroup,
                 CO_flagsPDO = CO_flagsPDO,
                 CO_accessSRDO = CO_accessSRDO,
-                CO_stringLengthMin = CO_stringLengthMin
+                CO_stringLengthMin = CO_stringLengthMin,
+                CO_customerVisible = CO_customerVisible
             };
         }
         /// <summary>
@@ -225,6 +232,7 @@ namespace libEDSsharp
                         case "CO_countLabel": CO_countLabel = prop.value ?? ""; break;
                         case "CO_storageGroup": CO_storageGroup = prop.value ?? ""; break;
                         case "CO_flagsPDO": CO_flagsPDO = prop.value == "true"; break;
+                        case "CO_customerVisible": CO_customerVisible = prop.value != "false"; break;
                         case "CO_accessSRDO":
                             try { CO_accessSRDO = (AccessSRDO)Enum.Parse(typeof(AccessSRDO), prop.value); }
                             catch (Exception) { CO_accessSRDO = AccessSRDO.no; }
@@ -253,6 +261,8 @@ namespace libEDSsharp
                 props.Add(new property { name = "CO_storageGroup", value = CO_storageGroup });
             if (CO_flagsPDO)
                 props.Add(new property { name = "CO_flagsPDO", value = "true" });
+            if (!CO_customerVisible)
+                props.Add(new property { name = "CO_customerVisible", value = "false" });
 
             return props.ToArray();
         }
