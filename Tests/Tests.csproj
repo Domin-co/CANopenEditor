@@ -5,6 +5,15 @@
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net481;net8.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Tests is a Library, so MSBuild's binding-redirect generator skips it by default
+         (it normally only writes a .config next to an Exe's entry assembly). Google.Protobuf
+         (via libEDSsharp) pulls in a System.Memory version that doesn't exactly match what's
+         on disk for net481, and without a generated Tests.dll.config the VSTest/xunit test
+         host has no binding redirect to fall back on, so protobuf-touching tests fail with
+         a FileLoadException for System.Memory. Forcing redirect generation here mirrors what
+         EDSEditorGUI already gets automatically as an Exe. -->
+    <AutoGenerateBindingRedirects Condition="'$(TargetFramework)' == 'net481'">true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType Condition="'$(TargetFramework)' == 'net481'">true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\libEDSsharp\libEDSsharp.csproj" />
