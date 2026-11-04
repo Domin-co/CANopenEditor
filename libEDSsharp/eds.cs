@@ -1738,6 +1738,10 @@ namespace libEDSsharp
         public string mdfilename = "";
         public string xmlfilename = ""; // old format
         public string xddfilename_1_0 = ""; // old format
+        /// <summary>
+        /// File name, when project is opened as (experimental) Protobuffer JSON or binpb, or project is saved as such
+        /// </summary>
+        public string protobufFilename = "";
 
         //This is memorized, when XDD v1.1 is opened. It keeps all elements
         //from original XDD file, which are not handled by libedesharp, so

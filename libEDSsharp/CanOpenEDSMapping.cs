@@ -57,6 +57,7 @@ namespace libEDSsharp
                 .ForMember(dest => dest.mdfilename, opt => opt.Ignore())
                 .ForMember(dest => dest.xmlfilename, opt => opt.Ignore())
                 .ForMember(dest => dest.xddfilename_1_0, opt => opt.Ignore())
+                .ForMember(dest => dest.protobufFilename, opt => opt.Ignore())
                 .ForMember(dest => dest.xddTemplate, opt => opt.Ignore())
                 .ForMember(dest => dest.dummy_ods, opt => opt.Ignore())
                 .ForMember(dest => dest.CO_storageGroups, opt => opt.Ignore())
@@ -128,9 +129,7 @@ namespace libEDSsharp
                 .ForMember(dest => dest.CO_countLabel, opt => opt.MapFrom(src => src.CountLabel))
                 .ForMember(dest => dest.CO_storageGroup, opt => opt.MapFrom(src => src.StorageGroup))
                 .ForMember(dest => dest.CO_flagsPDO, opt => opt.MapFrom(src => src.FlagsPDO))
-                // The experimental protobuf schema has no "Customer Visible" field yet, so this
-                // is left out of protobuf import/export; it keeps its default (visible) value.
-                .ForMember(dest => dest.CO_customerVisible, opt => opt.Ignore());
+                .ForMember(dest => dest.CO_customerVisible, opt => opt.MapFrom(src => !src.CustomerHidden));
                 cfg.CreateMap<OdObject.Types.ObjectType, ObjectType>().ConvertUsing<ODTypeResolver>();
                 cfg.CreateMap<OdObject, ODentry>()
                 .ForMember(dest => dest.Index, opt => opt.Ignore())
@@ -167,6 +166,7 @@ namespace libEDSsharp
                 .ForMember(dest => dest.prop, opt => opt.Ignore())
                 .ForPath(dest => dest.prop.CO_accessSRDO, opt => opt.MapFrom(src => src.Srdo))
                 .ForPath(dest => dest.prop.CO_stringLengthMin, opt => opt.MapFrom(src => src.StringLengthMin))
+                .ForPath(dest => dest.prop.CO_customerVisible, opt => opt.MapFrom(src => !src.CustomerHidden))
                 .ForMember(dest => dest.uniqueID, opt => opt.Ignore())
                 .ForMember(dest => dest.objecttype, opt => opt.Ignore())
                 .ForMember(dest => dest.Description, opt => opt.Ignore())
@@ -228,7 +228,8 @@ namespace libEDSsharp
                 .ForMember(dest => dest.FlagsPDO, opt => opt.MapFrom(src => src.prop.CO_flagsPDO))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.parameter_name))
                 .ForMember(dest => dest.ObjectType, opt => opt.MapFrom(src => src.objecttype))
-                .ForMember(dest => dest.CountLabel, opt => opt.MapFrom(src => src.prop.CO_countLabel));
+                .ForMember(dest => dest.CountLabel, opt => opt.MapFrom(src => src.prop.CO_countLabel))
+                .ForMember(dest => dest.CustomerHidden, opt => opt.MapFrom(src => !src.prop.CO_customerVisible));
                 cfg.CreateMap<ObjectType, OdObject.Types.ObjectType>().ConvertUsing<ODTypeResolver>();
                 cfg.CreateMap<EDSsharp.AccessType, OdSubObject.Types.AccessSDO>().ConvertUsing<ODAccessTypeResolver>();
                 cfg.CreateMap<EDSsharp.AccessType, OdSubObject.Types.AccessPDO>().ConvertUsing<ODAccessTypeResolver>();
@@ -239,7 +240,8 @@ namespace libEDSsharp
                 .ForMember(dest => dest.Sdo, opt => opt.MapFrom(src => src.accesstype))
                 .ForMember(dest => dest.Pdo, opt => opt.MapFrom(src => src.accesstype))
                 .ForMember(dest => dest.Srdo, opt => opt.MapFrom(src => src.prop.CO_accessSRDO))
-                .ForMember(dest => dest.StringLengthMin, opt => opt.MapFrom(src => src.prop.CO_stringLengthMin));
+                .ForMember(dest => dest.StringLengthMin, opt => opt.MapFrom(src => src.prop.CO_stringLengthMin))
+                .ForMember(dest => dest.CustomerHidden, opt => opt.MapFrom(src => !src.prop.CO_customerVisible));
             }, LoggerFactory.Create(builder => { builder.AddDebug(); }));
 
             config.AssertConfigurationIsValid();

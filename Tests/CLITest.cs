@@ -42,6 +42,27 @@ namespace Tests
             Assert.Equal(2, files.Length);
         }
         [Fact]
+        public void JsonToEds()
+        {
+            RunEDSSharp("--infile minimal_project.json --outfile file.eds");
+            Assert.Single(Directory.GetFiles(".", "file.eds"));
+        }
+        [Fact]
+        public void JsonToCanOpenNodeV4()
+        {
+            RunEDSSharp("--type CanOpenNodeV4 --infile minimal_project.json --outfile V4");
+            Assert.Equal(2, Directory.GetFiles(".", "V4.*").Length);
+        }
+        [Fact]
+        public void JsonToBinpbRoundTrip()
+        {
+            File.Delete("file.binpb");
+            RunEDSSharp("--infile minimal_project.json --outfile file.binpb");
+            Assert.Single(Directory.GetFiles(".", "file.binpb"));
+            RunEDSSharp("--infile file.binpb --outfile file.eds");
+            Assert.Single(Directory.GetFiles(".", "file.eds"));
+        }
+        [Fact]
         public void OnlySingleExporterByExtensionPossible()
         {
             RunEDSSharp("--infile minimal_project.xdd --outfile file.eds");

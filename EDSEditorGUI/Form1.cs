@@ -281,12 +281,12 @@ namespace ODEditor
 
             OpenFileDialog odf = new OpenFileDialog();
             odf.Filter = "All supported files (*.xdd;*.xdc;*.xpd;*.eds;*.dcf;*.binpb;*.json)|*.xdd;*.xdc;*.xpd;*.eds;*.dcf;*.binpb;*.json|"
+                       + "CANopen Protobuffer (*.binpb;*.json)|*.binpb;*.json|"
                        + "CANopen XDD (*.xdd)|*.xdd|"
                        + "CANopen XDC (*.xdc)|*.xdc|"
                        + "CANopen XPD (*.xpd)|*.xpd|"
                        + "Electronic Data Sheet (*.eds)|*.eds|"
-                       + "Device Configuration File (*.dcf)|*.dcf|"
-                       + "CANopen Protobuffer (*.binpb;*.json)|*.binpb;*.json";
+                       + "Device Configuration File (*.dcf)|*.dcf";
 
             if (odf.ShowDialog() == DialogResult.OK)
             {
@@ -397,6 +397,7 @@ namespace ODEditor
                 }
 
                 eds.projectFilename = path;
+                eds.protobufFilename = path;
 
                 DeviceView device = new DeviceView(eds, network);
 
@@ -602,9 +603,10 @@ namespace ODEditor
             {
                 DeviceView dv = (DeviceView)tabControl1.SelectedTab.Controls[0];
 
-                if (dv.eds.xddfilename_1_1 != "")
+                string projectFile = GetProjectSavePath(dv.eds);
+                if (projectFile != "")
                 {
-                    dosave(dv, dv.eds.xddfilename_1_1, true);
+                    dosave(dv, projectFile, true);
                 }
                 else
                 {
@@ -614,6 +616,20 @@ namespace ODEditor
             }
         }
 
+        /// <summary>
+        /// Returns the file the project is saved to by "Save", or "" if "Save As" is needed.
+        /// The Protobuffer JSON/binary file is the main project file, if the project was
+        /// opened from or last saved to it. Otherwise the XDD v1.1 file is used.
+        /// </summary>
+        private static string GetProjectSavePath(EDSsharp eds)
+        {
+            if (eds.protobufFilename != "" && eds.protobufFilename == eds.projectFilename)
+                return eds.protobufFilename;
+            if (eds.xddfilename_1_1 != "")
+                return eds.xddfilename_1_1;
+            return "";
+        }
+
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (tabControl1.SelectedTab != null)
@@ -621,9 +637,11 @@ namespace ODEditor
                 DeviceView dv = (DeviceView)tabControl1.SelectedTab.Controls[0];
                 SaveFileDialog sfd = new SaveFileDialog();
 
-                sfd.Filter = "CANopen XDD v1.1 (*.xdd)|*.xdd|"
+                sfd.Filter = "CANopen Protobuffer JSON (*.json)|*.json|"
+                           + "CANopen XDD v1.1 (*.xdd)|*.xdd|"
                            + "CANopen XDC v1.1 (*.xdc)|*.xdc|"
                            + "CANopen XPD v1.1 (*.xpd)|*.xpd";
+                sfd.DefaultExt = "json";
 
                 if (dv.eds.projectFilename == "")
                 {
@@ -703,10 +721,13 @@ namespace ODEditor
 
                 case ".binpb":
                 case ".json":
+                    dv.eds.projectFilename = FileName;
+                    dv.eds.protobufFilename = FileName;
                     Warnings.warning_list.Clear();
 
                     CanOpenXDD_1_1 copb = new CanOpenXDD_1_1();
                     copb.WriteProtobuf(FileName, dv.eds, Path.GetExtension(FileName) == ".json");
+                    dv.eds.Dirty = false;
 
                     if (Warnings.warning_list.Count != 0)
                     {
@@ -1114,9 +1135,10 @@ namespace ODEditor
                 DeviceView dv = (DeviceView)tabControl1.SelectedTab.Controls[0];
                 int cnt = 0;
 
-                if (dv.eds.xddfilename_1_1 != "" && dv.eds.xddfilename_1_1 == dv.eds.projectFilename)
+                string projectFile = GetProjectSavePath(dv.eds);
+                if (projectFile != "" && projectFile == dv.eds.projectFilename)
                 {
-                    dosave(dv, dv.eds.xddfilename_1_1, true);
+                    dosave(dv, projectFile, true);
                 }
                 else
                 {
@@ -1214,6 +1236,8 @@ namespace ODEditor
                     case ".nxdd":
                     case ".nxdc":
                     case ".nxml":
+                    case ".json":
+                    case ".binpb":
                         typeSupported = true;
                         break;
                 }

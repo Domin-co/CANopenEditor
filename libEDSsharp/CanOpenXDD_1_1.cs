@@ -626,6 +626,25 @@ namespace libEDSsharp
             }
         }
 
+        // CO_customerVisible can legitimately appear in either the object-level or the
+        // sub-level property bucket (unlike the other CO_* properties, it is editable at
+        // both index and sub-index level), so it cannot be folded into the shared switch
+        // below without risking the object-level flag being clobbered while iterating
+        // sub-entries. Callers apply this to the correct target (entry vs subEntry)
+        // themselves instead.
+        private static bool PropertyCustomerVisible(property[] properties)
+        {
+            if (properties != null)
+            {
+                foreach (property prop in properties)
+                {
+                    if (prop.name == "CO_customerVisible")
+                        return prop.value != "false";
+                }
+            }
+            return true;
+        }
+
         private void ConvertXddProperties(property[] properties, OdObject entry, OdSubObject subEntry)
         {
             if (properties != null)
@@ -669,6 +688,8 @@ namespace libEDSsharp
                 props.Add(new property { name = "CO_storageGroup", value = entry.StorageGroup });
             if (entry.FlagsPDO)
                 props.Add(new property { name = "CO_flagsPDO", value = "true" });
+            if (entry.CustomerHidden)
+                props.Add(new property { name = "CO_customerVisible", value = "false" });
 
             return props.ToArray();
         }
@@ -689,6 +710,8 @@ namespace libEDSsharp
 
             if (subEntry.StringLengthMin != 0)
                 props.Add(new property { name = "CO_stringLengthMin", value = subEntry.StringLengthMin.ToString() });
+            if (subEntry.CustomerHidden)
+                props.Add(new property { name = "CO_customerVisible", value = "false" });
 
             return props.ToArray();
         }
@@ -1810,6 +1833,7 @@ namespace libEDSsharp
                                 }
 
                                 ConvertXddProperties(devPar.property, entry, subEntry0);
+                                entry.CustomerHidden = !PropertyCustomerVisible(devPar.property);
                             }
 
                             if (netObj.CANopenSubObject == null)
@@ -1898,6 +1922,7 @@ namespace libEDSsharp
                                         }
 
                                         ConvertXddProperties(devSubPar.property, entry, subEntry);
+                                        subEntry.CustomerHidden = !PropertyCustomerVisible(devSubPar.property);
                                     }
 
                                     if (!entry.SubObjects.ContainsKey(subIndex))

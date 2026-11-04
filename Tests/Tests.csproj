@@ -28,6 +28,9 @@
     <None Include="minimal_project.xdd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="minimal_project.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
