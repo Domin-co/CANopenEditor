@@ -51,6 +51,7 @@ namespace ODEditor
             loadprofiles();
             insertToolStripMenuItem.Enabled = false;
             Warnings.warning_mask = Properties.Settings.Default.WarningMask;
+            Preferences.ApplyWordSettings();
         }
 
         private void loadprofiles()
@@ -597,6 +598,37 @@ namespace ODEditor
             }
         }
 
+        private void createCustomerWordToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedTab != null)
+            {
+                DeviceView dv = (DeviceView)tabControl1.SelectedTab.Controls[0];
+                SaveFileDialog sfd = new SaveFileDialog();
+
+                sfd.Filter = "Word document (*.docx)|*.docx";
+                sfd.InitialDirectory = Path.GetDirectoryName(dv.eds.projectFilename);
+                sfd.RestoreDirectory = true;
+                sfd.FileName = Path.GetFileNameWithoutExtension(dv.eds.projectFilename) + "_Customer";
+
+                if (sfd.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        this.UseWaitCursor = true;
+                        new DocumentationGenWord().genworddoc(sfd.FileName, dv.eds, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Create Customer Word", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        this.UseWaitCursor = false;
+                    }
+                }
+            }
+        }
+
         private void saveProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (tabControl1.SelectedTab != null)
@@ -799,6 +831,7 @@ namespace ODEditor
             exportDeviceFileToolStripMenuItem.Enabled = enable;
             createCustomerEdsToolStripMenuItem.Enabled = enable;
             createCustomerMdToolStripMenuItem.Enabled = enable;
+            createCustomerWordToolStripMenuItem.Enabled = enable;
             saveAsToolStripMenuItem.Enabled = true;
 
         }

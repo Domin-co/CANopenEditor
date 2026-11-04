@@ -34,7 +34,45 @@ namespace ODEditor
             if ((mask & 0x10) == 0x10)
                 checkBox_structwarning.Checked = true;
 
+            textBox_wordtemplate.Text = Properties.Settings.Default.WordTemplatePath;
+            textBox_pandoc.Text = Properties.Settings.Default.PandocPath;
+            textBox_wordstart.Text = Properties.Settings.Default.WordStartHeading;
+        }
 
+        /// <summary>
+        /// Push the saved Word export settings into the exporter. Empty values fall back to
+        /// the exporter's environment variable / default lookup.
+        /// </summary>
+        internal static void ApplyWordSettings()
+        {
+            DocumentationGenWord.TemplatePath = NullIfEmpty(Properties.Settings.Default.WordTemplatePath);
+            DocumentationGenWord.PandocPath = NullIfEmpty(Properties.Settings.Default.PandocPath);
+            DocumentationGenWord.StartAtHeading = NullIfEmpty(Properties.Settings.Default.WordStartHeading);
+        }
+
+        private static string NullIfEmpty(string s)
+        {
+            return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        }
+
+        private void button_browsetemplate_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Word templates (*.dotx;*.docx)|*.dotx;*.docx|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                    textBox_wordtemplate.Text = ofd.FileName;
+            }
+        }
+
+        private void button_browsepandoc_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "pandoc (pandoc.exe)|pandoc.exe|All files (*.*)|*.*";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                    textBox_pandoc.Text = ofd.FileName;
+            }
         }
 
         private void button_close_Click(object sender, EventArgs e)
@@ -66,6 +104,10 @@ namespace ODEditor
 
             Warnings.warning_mask = mask;
 
+            Properties.Settings.Default.WordTemplatePath = textBox_wordtemplate.Text.Trim();
+            Properties.Settings.Default.PandocPath = textBox_pandoc.Text.Trim();
+            Properties.Settings.Default.WordStartHeading = textBox_wordstart.Text.Trim();
+            ApplyWordSettings();
 
             Properties.Settings.Default.Save();
             this.Close();

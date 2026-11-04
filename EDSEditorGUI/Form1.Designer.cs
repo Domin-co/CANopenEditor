@@ -48,6 +48,7 @@
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.createCustomerEdsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createCustomerMdToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createCustomerWordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.closeFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
@@ -96,6 +97,7 @@
             this.toolStripSeparator7,
             this.createCustomerEdsToolStripMenuItem,
             this.createCustomerMdToolStripMenuItem,
+            this.createCustomerWordToolStripMenuItem,
             this.toolStripSeparator2,
             this.closeFileToolStripMenuItem,
             this.toolStripSeparator4,
@@ -226,6 +228,14 @@
             this.createCustomerMdToolStripMenuItem.Size = new System.Drawing.Size(359, 26);
             this.createCustomerMdToolStripMenuItem.Text = "Create Customer MD...";
             this.createCustomerMdToolStripMenuItem.Click += new System.EventHandler(this.createCustomerMdToolStripMenuItem_Click);
+            //
+            // createCustomerWordToolStripMenuItem
+            //
+            this.createCustomerWordToolStripMenuItem.Enabled = false;
+            this.createCustomerWordToolStripMenuItem.Name = "createCustomerWordToolStripMenuItem";
+            this.createCustomerWordToolStripMenuItem.Size = new System.Drawing.Size(359, 26);
+            this.createCustomerWordToolStripMenuItem.Text = "Create Customer Word...";
+            this.createCustomerWordToolStripMenuItem.Click += new System.EventHandler(this.createCustomerWordToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
@@ -373,6 +383,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem createCustomerEdsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createCustomerMdToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem createCustomerWordToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
