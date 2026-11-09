@@ -17,8 +17,8 @@ namespace Tests
             string md = "intro\n# 0x2025 - BuildVersion\n### 0x2026 - Other\n";
             string result = DocumentationGenWord.PrepareMarkdown(md, "A Person", new DateTime(2026, 11, 4), "# 0x2025 - BuildVersion");
 
-            Assert.StartsWith("% Object Dictionary\n% A Person\n% 2026-11-04\n\n# 0x2025", result);
-            Assert.Contains("# 0x2026 - Other", result);
+            Assert.StartsWith("% Object Dictionary\n% Author: A Person\n% Date: 2026-11-04\n\n# 0x2025", result);
+            Assert.Contains("\n# 0x2026 - Other", result);
             Assert.DoesNotContain("### 0x", result);
             Assert.DoesNotContain("intro", result);
         }
@@ -165,6 +165,83 @@ namespace Tests
                     Assert.NotNull(heading.ParagraphProperties.PageBreakBefore);
                     Assert.NotNull(after.ParagraphProperties.PageBreakBefore);
                     Assert.Null(body.Elements<Paragraph>().First().ParagraphProperties.PageBreakBefore);
+                }
+            }
+            finally
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+        }
+
+        [Fact]
+        public void PrepareMarkdown_labels_author_and_date_and_promotes_headings()
+        {
+            string md = "Manufacturer Specific Parameters\n--------------------------------\n### 0x2000 - Mine\n| a | b |\n| ---- | ---- |\n";
+            string result = DocumentationGenWord.PrepareMarkdown(md, "A Person", new DateTime(2026, 11, 5));
+
+            Assert.StartsWith("% Object Dictionary\n% Author: A Person\n% Date: 2026-11-05\n\n", result);
+            Assert.Contains("Manufacturer Specific Parameters\n--------------------------------", result);
+            Assert.Contains("\n# 0x2000 - Mine", result);
+            Assert.DoesNotContain("## 0x2000", result);
+            Assert.Contains("| ---- | ---- |", result);
+        }
+
+        [Fact]
+        public void PrepareMarkdown_removes_chapter_with_no_entries()
+        {
+            string md = "Manufacturer Specific Parameters\n--------------------------------\n### 0x2000 - Mine\nmfr\n\n" +
+                        "Device Profile Specific Parameters\n----------------------------------\n";
+            string result = DocumentationGenWord.PrepareMarkdown(md, "A", new DateTime(2026, 1, 1));
+
+            Assert.Contains("Manufacturer Specific Parameters", result);
+            Assert.DoesNotContain("Device Profile Specific Parameters", result);
+        }
+
+        [Fact]
+        public void PrepareMarkdown_start_heading_keeps_heading_marker()
+        {
+            string md = "### 0x1000 - A\nx\n### 0x2025 - BuildVersion\ny\n";
+            string result = DocumentationGenWord.PrepareMarkdown(md, "A", new DateTime(2026, 1, 1), "# 0x2025 - BuildVersion");
+
+            Assert.Contains("\n# 0x2025 - BuildVersion", result);
+            Assert.DoesNotContain("## 0x2025", result);
+            Assert.DoesNotContain("0x1000", result);
+        }
+
+        [Fact]
+        public void FormatTables_defines_contents_heading_style_and_hides_title_from_contents()
+        {
+            string path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".docx");
+            try
+            {
+                Paragraph P(string style, string text)
+                {
+                    return new Paragraph(new ParagraphProperties(new ParagraphStyleId { Val = style }), new Run(new Text(text)));
+                }
+
+                using (var doc = WordprocessingDocument.Create(path, WordprocessingDocumentType.Document))
+                {
+                    var main = doc.AddMainDocumentPart();
+                    var stylePart = main.AddNewPart<StyleDefinitionsPart>();
+                    stylePart.Styles = new Styles(new Style(new StyleName { Val = "heading 1" }) { Type = StyleValues.Paragraph, StyleId = "Heading1" });
+                    stylePart.Styles.Save();
+                    main.Document = new Document(new Body(
+                        P("Title", "Object Dictionary"),
+                        new SdtBlock(new SdtContentBlock(P("TOCHeading", "Table of Contents")))));
+                    main.Document.Save();
+                }
+
+                DocumentationGenWord.FormatTables(path);
+
+                using (var doc = WordprocessingDocument.Open(path, false))
+                {
+                    var style = doc.MainDocumentPart.StyleDefinitionsPart.Styles.Elements<Style>().Single(x => x.StyleId.Value == "TOCHeading");
+                    Assert.Equal("Heading1", style.BasedOn.Val.Value);
+                    Assert.Equal(9, style.StyleParagraphProperties.OutlineLevel.Val.Value);
+
+                    var title = doc.MainDocumentPart.Document.Body.Elements<Paragraph>().First();
+                    Assert.Equal(9, title.ParagraphProperties.OutlineLevel.Val.Value);
                 }
             }
             finally

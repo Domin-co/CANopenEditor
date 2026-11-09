@@ -121,7 +121,12 @@ namespace libEDSsharp
             {
                 int pos = md.IndexOf(startAtHeading, StringComparison.Ordinal);
                 if (pos != -1)
+                {
+                    // "# 0x2025" also matches inside "### 0x2025"; keep the whole heading marker.
+                    while (pos > 0 && md[pos - 1] == '#')
+                        pos--;
                     md = md.Substring(pos);
+                }
             }
             // The title block already names the document, so drop the generated top heading.
             md = Regex.Replace(md, @"^\s*CANopen device documentation[ \t]*\r?\n=+[ \t]*\r?\n", "");
@@ -132,11 +137,47 @@ namespace libEDSsharp
                 md = md.Substring(deviceInfo.Index);
             // pandoc builds a real table of contents with --toc; the "[TOC]" marker is not understood by it.
             md = Regex.Replace(md, @"^\[TOC\][ \t]*\r?\n", "", RegexOptions.Multiline);
-            md = md.Replace("### 0x", "# 0x");
             if (firstIndex > 0)
                 md = CutBeforeIndex(md, firstIndex);
+            md = RemoveEmptyChapters(md);
+            md = PromoteHeadings(md);
             // The three title block lines must be consecutive for pandoc to treat them as title, author and date.
-            return "% Object Dictionary\n% " + author + "\n% " + date.ToString("yyyy-MM-dd") + "\n\n" + md;
+            return "% Object Dictionary\n% Author: " + author + "\n% Date: " + date.ToString("yyyy-MM-dd") + "\n\n" + md;
+        }
+
+        static readonly Regex ChapterHeading = new Regex(@"^[^\r\n]+ Specific Parameters[ \t]*\r?\n-{3,}[ \t]*\r?\n", RegexOptions.Multiline);
+        static readonly Regex IndexHeading = new Regex(@"^#{1,3} 0x[0-9A-Fa-f]{4}\b", RegexOptions.Multiline);
+
+        /// <summary>
+        /// Remove chapter headings (for example Device Profile Specific Parameters) that have no
+        /// index entries beneath them. The generator writes the heading as soon as it reaches the range,
+        /// even when every entry in it is disabled or hidden.
+        /// </summary>
+        static string RemoveEmptyChapters(string md)
+        {
+            MatchCollection chapters = ChapterHeading.Matches(md);
+            if (chapters.Count == 0)
+                return md;
+
+            var sb = new StringBuilder(md.Substring(0, chapters[0].Index));
+            for (int i = 0; i < chapters.Count; i++)
+            {
+                int start = chapters[i].Index;
+                int end = i + 1 < chapters.Count ? chapters[i + 1].Index : md.Length;
+                string section = md.Substring(start, end - start);
+                if (IndexHeading.IsMatch(section))
+                    sb.Append(section);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Make index entries level 1 ("### 0x..." becomes "# 0x...") while chapter headings, which the
+        /// generator underlines with "---", stay level 2.
+        /// </summary>
+        static string PromoteHeadings(string md)
+        {
+            return Regex.Replace(md, @"^### 0x", "# 0x", RegexOptions.Multiline);
         }
 
         /// <summary>
@@ -146,7 +187,7 @@ namespace libEDSsharp
         /// </summary>
         static string CutBeforeIndex(string md, int firstIndex)
         {
-            foreach (Match m in Regex.Matches(md, @"^# 0x([0-9A-Fa-f]{4})\b", RegexOptions.Multiline))
+            foreach (Match m in Regex.Matches(md, @"^#{1,3} 0x([0-9A-Fa-f]{4})\b", RegexOptions.Multiline))
             {
                 if (Convert.ToInt32(m.Groups[1].Value, 16) < firstIndex)
                     continue;
@@ -292,7 +333,7 @@ namespace libEDSsharp
                 }
 
                 PushTitleBelowHeaderArt(doc);
-                PutContentsOnOwnPage(body);
+                PutContentsOnOwnPage(doc.MainDocumentPart, body);
                 if (PageBreakPerIndex)
                     BreakBeforeEachIndex(body);
 
@@ -314,7 +355,7 @@ namespace libEDSsharp
         /// Put the table of contents on its own page: a break before its heading, and a break
         /// before whatever follows it.
         /// </summary>
-        static void PutContentsOnOwnPage(Body body)
+        static void PutContentsOnOwnPage(MainDocumentPart main, Body body)
         {
             SdtBlock toc = body.Elements<SdtBlock>()
                 .FirstOrDefault(b => b.Descendants<Paragraph>().Any(p => StyleOf(p) == "TOCHeading"));
@@ -323,12 +364,48 @@ namespace libEDSsharp
 
             Paragraph heading = toc.Descendants<Paragraph>().First(p => StyleOf(p) == "TOCHeading");
             SetPageBreakBefore(heading);
+            DefineContentsHeadingStyle(main);
+
+            // The Title style carries outline level 1, which the contents field would list. Opt it out.
+            Paragraph title = body.Elements<Paragraph>().FirstOrDefault(p => StyleOf(p) == "Title");
+            if (title != null)
+            {
+                ParagraphProperties tPr = title.ParagraphProperties ?? title.PrependChild(new ParagraphProperties());
+                tPr.OutlineLevel = new OutlineLevel { Val = 9 };
+            }
 
             OpenXmlElement next = toc.ElementsAfter().FirstOrDefault(e => e is Paragraph || e is Table);
             if (next is Paragraph)
                 SetPageBreakBefore((Paragraph)next);
             else if (next != null)
                 next.InsertBeforeSelf(new Paragraph(new Run(new Break { Type = BreakValues.Page })));
+        }
+
+        /// <summary>
+        /// pandoc marks the contents heading with the TOCHeading style but the template does not define it,
+        /// so it renders as body text. Define it as Heading 1 in appearance, with outline level body text so
+        /// the contents list does not list itself.
+        /// </summary>
+        static void DefineContentsHeadingStyle(MainDocumentPart main)
+        {
+            Styles styles = main.StyleDefinitionsPart?.Styles;
+            if (styles == null || styles.Elements<Style>().Any(st => st.StyleId != null && st.StyleId.Value == "TOCHeading"))
+                return;
+
+            var style = new Style(
+                new StyleName { Val = "TOC Heading" },
+                new BasedOn { Val = "Heading1" },
+                new NextParagraphStyle { Val = "Normal" },
+                new UIPriority { Val = 39 },
+                new UnhideWhenUsed(),
+                new PrimaryStyle(),
+                new StyleParagraphProperties(new OutlineLevel { Val = 9 }))
+            {
+                Type = StyleValues.Paragraph,
+                StyleId = "TOCHeading"
+            };
+            styles.Append(style);
+            styles.Save();
         }
 
         static void SetPageBreakBefore(Paragraph p)

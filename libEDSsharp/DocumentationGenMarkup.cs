@@ -126,33 +126,37 @@ Device Information
             file.WriteLine("-----------");
             PrintPdoMd(eds, false, customerOnly);
 
+            // A chapter heading is only written when an entry in that chapter is actually printed,
+            // so disabled or customer-hidden ranges do not leave an empty heading behind.
             int chapter = 0;
             foreach (ODentry od in eds.ods.Values)
             {
-                if (chapter == 0)
+                if (od.prop.CO_disabled || (customerOnly && !od.prop.CO_customerVisible))
+                    continue;
+
+                int entryChapter = od.Index >= 0x6000 ? 3 : od.Index >= 0x2000 ? 2 : 1;
+                if (entryChapter > chapter)
                 {
+                    chapter = entryChapter;
                     file.WriteLine();
-                    file.WriteLine("Communication Specific Parameters");
-                    file.WriteLine("---------------------------------");
-                    chapter++;
-                }
-                if (chapter == 1 && od.Index >= 0x2000)
-                {
-                    file.WriteLine();
-                    file.WriteLine("Manufacturer Specific Parameters");
-                    file.WriteLine("--------------------------------");
-                    chapter++;
-                }
-                if (chapter == 2 && od.Index >= 0x6000)
-                {
-                    file.WriteLine();
-                    file.WriteLine("Device Profile Specific Parameters");
-                    file.WriteLine("----------------------------------");
-                    chapter++;
+                    if (chapter == 1)
+                    {
+                        file.WriteLine("Communication Specific Parameters");
+                        file.WriteLine("---------------------------------");
+                    }
+                    else if (chapter == 2)
+                    {
+                        file.WriteLine("Manufacturer Specific Parameters");
+                        file.WriteLine("--------------------------------");
+                    }
+                    else
+                    {
+                        file.WriteLine("Device Profile Specific Parameters");
+                        file.WriteLine("----------------------------------");
+                    }
                 }
 
-                if (!od.prop.CO_disabled && (!customerOnly || od.prop.CO_customerVisible))
-                    PrintODentryMd(od, customerOnly);
+                PrintODentryMd(od, customerOnly);
             }
 
             file.Close();
