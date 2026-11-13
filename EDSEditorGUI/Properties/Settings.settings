@@ -8,5 +8,14 @@
     <Setting Name="WarningMask" Type="System.UInt32" Scope="User">
       <Value Profile="(Default)">65535</Value>
     </Setting>
+    <Setting Name="WordTemplatePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PandocPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="WordStartHeading" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

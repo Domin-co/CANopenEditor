@@ -4,7 +4,8 @@ CANopenEditor is a fork from [libedssharp, authored by Robin Cornelius](https://
 CANopenEditor's homepage is https://github.com/CANopenNode/CANopenEditor.
 
 CANopen Object Dictionary Editor:
- - Imports: CANopen electronic data sheets in EDS or XDD format.
+ - Project file: the main project file is the Protobuffer JSON file (.json); .binpb is also supported. EDS and CANopenNode od.h/od.c files are generated from it.
+ - Imports: CANopen project files in JSON/binpb, EDS or XDD format.
  - Exports: CANopen electronic data sheets in EDS or XDD format, documentation, CANopenNode C source files and more.
  - Interfaces: GUI editor for CANopen Object Dictionary, Device information, etc. CLI client for simple conversions.
 

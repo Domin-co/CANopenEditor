@@ -626,6 +626,25 @@ namespace libEDSsharp
             }
         }
 
+        // CO_customerVisible can legitimately appear in either the object-level or the
+        // sub-level property bucket (unlike the other CO_* properties, it is editable at
+        // both index and sub-index level), so it cannot be folded into the shared switch
+        // below without risking the object-level flag being clobbered while iterating
+        // sub-entries. Callers apply this to the correct target (entry vs subEntry)
+        // themselves instead.
+        private static bool PropertyCustomerVisible(property[] properties)
+        {
+            if (properties != null)
+            {
+                foreach (property prop in properties)
+                {
+                    if (prop.name == "CO_customerVisible")
+                        return prop.value != "false";
+                }
+            }
+            return true;
+        }
+
         private void ConvertXddProperties(property[] properties, OdObject entry, OdSubObject subEntry)
         {
             if (properties != null)
@@ -669,6 +688,8 @@ namespace libEDSsharp
                 props.Add(new property { name = "CO_storageGroup", value = entry.StorageGroup });
             if (entry.FlagsPDO)
                 props.Add(new property { name = "CO_flagsPDO", value = "true" });
+            if (entry.CustomerHidden)
+                props.Add(new property { name = "CO_customerVisible", value = "false" });
 
             return props.ToArray();
         }
@@ -689,6 +710,8 @@ namespace libEDSsharp
 
             if (subEntry.StringLengthMin != 0)
                 props.Add(new property { name = "CO_stringLengthMin", value = subEntry.StringLengthMin.ToString() });
+            if (subEntry.CustomerHidden)
+                props.Add(new property { name = "CO_customerVisible", value = "false" });
 
             return props.ToArray();
         }
@@ -877,7 +900,17 @@ namespace libEDSsharp
                             devSubPar.Items = new object[] { new vendorTextLabel { lang = "en", Value = subod.parameter_name } };
                         }
                         if (!stripped)
-                            devSubPar.property = subod.prop.SubOdeXdd();
+                        {
+                            // Combine the object-level bucket (currently only ever yields
+                            // CO_customerVisible for a sub-entry, since CO_disabled/CO_countLabel/
+                            // CO_storageGroup/CO_flagsPDO are index-level only and stay default here)
+                            // with the sub-level bucket (CO_accessSRDO/CO_stringLengthMin).
+                            var subPropOd = subod.prop.OdeXdd();
+                            var subPropSub = subod.prop.SubOdeXdd();
+                            devSubPar.property = new property[subPropOd.Length + subPropSub.Length];
+                            subPropOd.CopyTo(devSubPar.property, 0);
+                            subPropSub.CopyTo(devSubPar.property, subPropOd.Length);
+                        }
                         if (deviceCommissioning && subod.denotation != null && subod.denotation != "")
                         {
                             devPar.denotation = new denotation
@@ -1800,6 +1833,7 @@ namespace libEDSsharp
                                 }
 
                                 ConvertXddProperties(devPar.property, entry, subEntry0);
+                                entry.CustomerHidden = !PropertyCustomerVisible(devPar.property);
                             }
 
                             if (netObj.CANopenSubObject == null)
@@ -1888,6 +1922,7 @@ namespace libEDSsharp
                                         }
 
                                         ConvertXddProperties(devSubPar.property, entry, subEntry);
+                                        subEntry.CustomerHidden = !PropertyCustomerVisible(devSubPar.property);
                                     }
 
                                     if (!entry.SubObjects.ContainsKey(subIndex))

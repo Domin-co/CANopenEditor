@@ -79,6 +79,8 @@ namespace ODEditor
             this.comboBox_storageGroup = new System.Windows.Forms.ComboBox();
             this.label15 = new System.Windows.Forms.Label();
             this.checkBox_enabled = new System.Windows.Forms.CheckBox();
+            this.label_customerVisible = new System.Windows.Forms.Label();
+            this.checkBox_customerVisible = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
             this.comboBox_objectType = new System.Windows.Forms.ComboBox();
             this.label8 = new System.Windows.Forms.Label();
@@ -483,6 +485,8 @@ namespace ODEditor
             this.groupBox1.Controls.Add(this.comboBox_storageGroup);
             this.groupBox1.Controls.Add(this.label15);
             this.groupBox1.Controls.Add(this.checkBox_enabled);
+            this.groupBox1.Controls.Add(this.label_customerVisible);
+            this.groupBox1.Controls.Add(this.checkBox_customerVisible);
             this.groupBox1.Controls.Add(this.label7);
             this.groupBox1.Controls.Add(this.comboBox_objectType);
             this.groupBox1.Controls.Add(this.label8);
@@ -670,6 +674,25 @@ namespace ODEditor
             this.checkBox_enabled.TabIndex = 32;
             this.checkBox_enabled.UseVisualStyleBackColor = true;
             this.checkBox_enabled.CheckedChanged += new System.EventHandler(this.DataDirty);
+            // 
+            // label_customerVisible
+            // 
+            this.label_customerVisible.AutoSize = true;
+            this.label_customerVisible.Location = new System.Drawing.Point(482, 112);
+            this.label_customerVisible.Name = "label_customerVisible";
+            this.label_customerVisible.Size = new System.Drawing.Size(87, 13);
+            this.label_customerVisible.TabIndex = 36;
+            this.label_customerVisible.Text = "Customer Visible";
+            // 
+            // checkBox_customerVisible
+            // 
+            this.checkBox_customerVisible.AutoSize = true;
+            this.checkBox_customerVisible.Location = new System.Drawing.Point(574, 112);
+            this.checkBox_customerVisible.Name = "checkBox_customerVisible";
+            this.checkBox_customerVisible.Size = new System.Drawing.Size(15, 14);
+            this.checkBox_customerVisible.TabIndex = 37;
+            this.checkBox_customerVisible.UseVisualStyleBackColor = true;
+            this.checkBox_customerVisible.CheckedChanged += new System.EventHandler(this.DataDirty);
             // 
             // label7
             // 
@@ -990,6 +1013,8 @@ namespace ODEditor
         private System.Windows.Forms.ComboBox comboBox_storageGroup;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.CheckBox checkBox_enabled;
+        private System.Windows.Forms.Label label_customerVisible;
+        private System.Windows.Forms.CheckBox checkBox_customerVisible;
         private System.Windows.Forms.Label label_pdoFlags;
         private System.Windows.Forms.CheckBox checkBox_pdoFlags;
         private System.Windows.Forms.TextBox textBox_defaultValue;

@@ -80,7 +80,9 @@ namespace ODEditor
             }
 
             textBox_projectFileName.Text = Path.GetFileName(eds.projectFilename);
-            if (eds.xddfilename_1_1 != "")
+            if (eds.protobufFilename != "" && eds.protobufFilename == eds.projectFilename)
+                textBox_projectFileVersion.Text = Path.GetExtension(eds.protobufFilename).ToLower() == ".json" ? "json" : "binpb";
+            else if (eds.xddfilename_1_1 != "")
                 textBox_projectFileVersion.Text = "v1.1";
             else if (eds.xddfilename_1_0 != "" && eds.xddfilename_1_0 == eds.projectFilename)
                 textBox_projectFileVersion.Text = "v1.0";

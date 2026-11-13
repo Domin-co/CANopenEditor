@@ -46,5 +46,41 @@ namespace ODEditor.Properties {
                 this["WarningMask"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string WordTemplatePath {
+            get {
+                return ((string)(this["WordTemplatePath"]));
+            }
+            set {
+                this["WordTemplatePath"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PandocPath {
+            get {
+                return ((string)(this["PandocPath"]));
+            }
+            set {
+                this["PandocPath"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string WordStartHeading {
+            get {
+                return ((string)(this["WordStartHeading"]));
+            }
+            set {
+                this["WordStartHeading"] = value;
+            }
+        }
     }
 }

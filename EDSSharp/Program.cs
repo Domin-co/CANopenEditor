@@ -53,10 +53,17 @@ namespace EDSSharp
                             openXDDfile(infile);
                             break;
 
+                        case ".json":
+                            openProtobufFile(infile, true);
+                            break;
+
+                        case ".binpb":
+                            openProtobufFile(infile, false);
+                            break;
+
                         case ".eds":
                             openEDSfile(infile);
                             break;
-
 
                         default:
                             Program.WriteError("Invalid INFILE extension.");
@@ -71,7 +78,7 @@ namespace EDSSharp
                     }
                     else
                     {
-                        Program.WriteError("Invalid XDD INFILE.");
+                        Program.WriteError("Invalid INFILE.");
                         PrintHelpText();
                     }
                 }
@@ -101,6 +108,18 @@ namespace EDSSharp
         private static void openEDSfile(string infile)
         {
             eds.Loadfile(infile);
+        }
+
+        private static void openProtobufFile(string path, bool json)
+        {
+            CanOpenXDD_1_1 coxml_1_1 = new CanOpenXDD_1_1();
+            eds = coxml_1_1.ReadProtobuf(path, json);
+
+            if (eds == null)
+                return;
+
+            eds.projectFilename = path;
+            eds.protobufFilename = path;
         }
 
         private static void openXDDfile(string path)
@@ -187,10 +206,10 @@ namespace EDSSharp
         {
             string name = Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]);
             Console.WriteLine($"Usage: {name} --infile FILE1 --outfile FILE2 [--type EXPORTER]");
-            Console.WriteLine("Converts a given XDD or EDS file to many other available types.");
-            Console.WriteLine($"Example: {name} --infile project.xdd --outfile map.md --type NetworkPDOReport");
+            Console.WriteLine("Converts a given project file (JSON/binpb Protobuffer, XDD or EDS) to many other available types.");
+            Console.WriteLine($"Example: {name} --infile project.json --outfile map.md --type NetworkPDOReport");
             Console.WriteLine("");
-            Console.WriteLine("FILE1 shall be a .xdd or .eds file.");
+            Console.WriteLine("FILE1 shall be a .json, .binpb, .xdd or .eds file.");
             Console.WriteLine("FILE2 shall have the extension of one of the supported exporters below.");
             Console.WriteLine("EXPORTER shall be one of the listed exporters below IF AND ONLY IF multiple of them support your output file extension.");
             Console.WriteLine("");
